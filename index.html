@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Canvas Ambient Background</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #000;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: #fff;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    /* ── Canvas layer ─────────────────────────────────────────── */
+
+    #ambientCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      /* Values reverse-engineered from Apple Podcasts source */
+      filter: blur(60px) saturate(2.75) brightness(0.7) contrast(1.9);
+      transform: scale(1.08); /* hide blur-edge bleed */
+    }
+
+    /* ── Dark scrim ───────────────────────────────────────────── */
+
+    .scrim {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.38);
+      z-index: 1;
+    }
+
+    /* ── Demo player UI ───────────────────────────────────────── */
+
+    .player {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100dvh;
+      padding: 0 40px 60px;
+      gap: 0;
+    }
+
+    .artwork {
+      width: min(280px, 70vw);
+      aspect-ratio: 1;
+      border-radius: 12px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.65);
+      object-fit: cover;
+      display: block;
+      margin-bottom: 28px;
+    }
+
+    .track-title {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+
+    .track-sub {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.55);
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .progress {
+      width: 100%;
+      max-width: 320px;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 2px;
+      margin-bottom: 32px;
+      position: relative;
+    }
+
+    .progress::before {
+      content: '';
+      position: absolute;
+      inset: 0 60% 0 0;
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 2px;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: rgba(255, 255, 255, 0.88);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .btn-play {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.95);
+      color: #1f1f1f;
+      padding-left: 3px;
+    }
+
+    /* ── URL loader ───────────────────────────────────────────── */
+
+    .loader {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      display: flex;
+      gap: 8px;
+    }
+
+    .loader input {
+      width: 260px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      font-size: 13px;
+      backdrop-filter: blur(12px);
+      outline: none;
+    }
+
+    .loader input::placeholder { color: rgba(255,255,255,0.4); }
+
+    .loader button {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      background: rgba(255, 255, 255, 0.18);
+      color: #fff;
+      cursor: pointer;
+      font-size: 13px;
+      backdrop-filter: blur(12px);
+      transition: background 0.15s;
+    }
+
+    .loader button:hover { background: rgba(255, 255, 255, 0.28); }
+  </style>
+</head>
+<body>
+
+  <!-- Canvas ambient background -->
+  <canvas id="ambientCanvas" aria-hidden="true"></canvas>
+  <div class="scrim" aria-hidden="true"></div>
+
+  <!-- Demo player UI -->
+  <div class="player">
+    <img id="artworkImg" class="artwork" src="sample.jpg" alt="Artwork" />
+    <p class="track-title">Episode Title</p>
+    <p class="track-sub">Podcast Name</p>
+    <div class="progress"></div>
+    <div class="controls">
+      <!-- skip back -->
+      <button class="btn" aria-label="Skip back">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+          <text x="8" y="15.5" font-size="5" fill="currentColor" font-family="sans-serif" font-weight="700">15</text>
+        </svg>
+      </button>
+      <!-- play -->
+      <button class="btn btn-play" aria-label="Play">
+        <svg width="20" height="22" viewBox="0 0 11 13" fill="currentColor">
+          <path d="M0 0v13l11-6.5z"/>
+        </svg>
+      </button>
+      <!-- skip forward -->
+      <button class="btn" aria-label="Skip forward">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8z"/>
+          <text x="8" y="15.5" font-size="5" fill="currentColor" font-family="sans-serif" font-weight="700">30</text>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Image URL loader -->
+  <div class="loader">
+    <input id="urlInput" type="text" placeholder="Paste image URL…" />
+    <button id="loadBtn">Load</button>
+  </div>
+
+  <script type="module">
+    import { AmbientCanvas } from './ambient-canvas.js';
+
+    const canvas  = document.getElementById('ambientCanvas');
+    const artwork = document.getElementById('artworkImg');
+    const input   = document.getElementById('urlInput');
+    const btn     = document.getElementById('loadBtn');
+
+    const ac = new AmbientCanvas(canvas);
+    ac.load('sample.jpg');
+
+    const applyImage = (src) => {
+      if (!src) return;
+      ac.load(src);
+      artwork.src = src;
+    };
+
+    btn.addEventListener('click', () => applyImage(input.value.trim()));
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') applyImage(input.value.trim());
+    });
+  </script>
+
+</body>
+</html>
