@@ -2,7 +2,16 @@
 
 Apple Podcasts "Now Playing" background effect — Canvas 2D API implementation.
 
-![demo](sample.jpg)
+<div align="center">
+
+[![Live Demo](https://img.shields.io/badge/▶_Live_Demo-GitHub_Pages-blue?style=for-the-badge)](https://touch-moon.github.io/canvas-ambient-bg/)
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/Touch-Moon/canvas-ambient-bg)
+
+*Try loading different artwork images — the background color adapts to each one.*
+
+</div>
+
+---
 
 ## How It Works
 
@@ -77,7 +86,7 @@ c.contrast    = 1.9
 
 The original uses PixiJS + WebGL; this implementation achieves an equivalent visual result using Canvas 2D + CSS filter.
 
-## Run the Demo
+## Run Locally
 
 ```bash
 # Requires a local server (ES Module)
