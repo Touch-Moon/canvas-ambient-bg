@@ -1,28 +1,28 @@
 # Canvas Ambient Background
 
-Apple Podcasts "Now Playing" 배경 효과 — Canvas 2D API 구현체.
+Apple Podcasts "Now Playing" background effect — Canvas 2D API implementation.
 
 ![demo](sample.jpg)
 
-## 동작 원리
+## How It Works
 
-| 단계 | 설명 |
-|------|------|
-| **Canvas** | 아트워크 이미지를 4개 스프라이트로 복사해 각각 다른 위치·속도로 회전 |
-| **CSS filter** | `blur(60px) saturate(2.75) brightness(0.7) contrast(1.9)` — Apple Podcasts 소스 실측값 |
-| **Scrim** | `rgba(0,0,0,0.38)` 오버레이로 가독성 확보 |
-| **Reduced motion** | `prefers-reduced-motion: reduce` 감지 시 회전 정지 |
+| Step | Description |
+|------|-------------|
+| **Canvas** | Copies the artwork image into 4 sprites, each rotating at a different position and speed |
+| **CSS filter** | `blur(60px) saturate(2.75) brightness(0.7) contrast(1.9)` — values reverse-engineered from Apple Podcasts source |
+| **Scrim** | `rgba(0,0,0,0.38)` overlay for readability |
+| **Reduced motion** | Rotation stops when `prefers-reduced-motion: reduce` is detected |
 
-## 파일 구조
+## File Structure
 
 ```
 canvas-ambient-bg/
-  ambient-canvas.js   ← 핵심 클래스 (프레임워크 독립)
-  index.html          ← 데모 (URL 입력으로 이미지 교체 가능)
-  sample.jpg          ← 샘플 아트워크
+  ambient-canvas.js   ← core class (framework-agnostic)
+  index.html          ← demo (swap image via URL input)
+  sample.jpg          ← sample artwork
 ```
 
-## 사용법
+## Usage
 
 ### Vanilla JS (ES Module)
 
@@ -39,14 +39,14 @@ canvas-ambient-bg/
   const ac = new AmbientCanvas(document.getElementById('canvas'));
   ac.load('artwork.jpg');
 
-  // 정지 / 재개
+  // stop / resume
   ac.stop();
   ac.start();
 
-  // 이미지 교체
+  // swap image
   ac.load('new-artwork.jpg');
 
-  // 컴포넌트 제거 시
+  // cleanup
   ac.destroy();
 </script>
 ```
@@ -61,9 +61,9 @@ useEffect(() => {
 }, [artworkSrc]);
 ```
 
-## CSS filter 값 출처
+## CSS Filter Values — Source
 
-Apple Podcasts 소스(`scene~7b5c360cee.js`)에서 직접 추출:
+Extracted directly from Apple Podcasts source (`scene~7b5c360cee.js`):
 
 ```js
 // ColorMatrixFilter
@@ -71,16 +71,16 @@ c.saturation = 2.75
 c.brightness  = 0.7
 c.contrast    = 1.9
 
-// BlurFilter × 5 (5 / 10 / 20 / 40 / 80px) → CSS blur(60px)으로 근사
-// ZoomBlur (angle: -3.25, radius: 900) → 원본은 PixiJS WebGL 사용
+// BlurFilter × 5 (5 / 10 / 20 / 40 / 80px) → approximated as CSS blur(60px)
+// ZoomBlur (angle: -3.25, radius: 900) → original uses PixiJS WebGL
 ```
 
-원본은 PixiJS + WebGL이지만 이 구현은 Canvas 2D + CSS filter로 동등한 시각 효과를 냅니다.
+The original uses PixiJS + WebGL; this implementation achieves an equivalent visual result using Canvas 2D + CSS filter.
 
-## 데모 실행
+## Run the Demo
 
 ```bash
-# 로컬 서버가 필요합니다 (ES Module 사용)
+# Requires a local server (ES Module)
 npx serve .
 # → http://localhost:3000
 ```
