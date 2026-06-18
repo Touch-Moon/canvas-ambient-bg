@@ -42,6 +42,7 @@ export class AmbientCanvas {
     ];
 
     this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.speedScale = 1; // multiplier for sprite rotation speed (control panel)
 
     this._draw   = this._draw.bind(this);
     this._resize = this._resize.bind(this);
@@ -118,7 +119,7 @@ export class AmbientCanvas {
       }
 
       if (!reducedMotion) {
-        for (const sp of sprites) sp.rot += sp.speed;
+        for (const sp of sprites) sp.rot += sp.speed * this.speedScale;
       }
     }
 

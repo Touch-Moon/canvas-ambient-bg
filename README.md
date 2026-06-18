@@ -2,12 +2,15 @@
 
 Apple Podcasts "Now Playing" background effect — Canvas 2D API implementation.
 
+**▶ Live:** https://lab-canvas-ambient-bg.creative-moon.com
+**Write-up:** https://www.creative-moon.com/stories/canvas-ambient-bg
+
 <div align="center">
 
-[![Live Demo](https://img.shields.io/badge/▶_Live_Demo-GitHub_Pages-blue?style=for-the-badge)](https://touch-moon.github.io/canvas-ambient-bg/)
+[![Live Demo](https://img.shields.io/badge/▶_Live_Demo-creative--moon.com-blue?style=for-the-badge)](https://lab-canvas-ambient-bg.creative-moon.com)
 [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/Touch-Moon/canvas-ambient-bg)
 
-*Try loading different artwork images — the background color adapts to each one.*
+*Try the live **control panel** (top-right) — saturate, brightness, contrast, blur, scrim, rotation — or switch artwork to watch the background color adapt.*
 
 </div>
 

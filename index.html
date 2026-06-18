@@ -158,6 +158,40 @@
     }
 
     .loader button:hover { background: rgba(255, 255, 255, 0.28); }
+
+    /* ── Control panel ─────────────────────────────────────────── */
+    #panel {
+      position: fixed; top: 20px; right: 20px; z-index: 20; width: 212px;
+      padding: 15px 15px 13px; border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(20, 20, 22, 0.6);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    }
+    #panel h2 {
+      font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.6); margin-bottom: 13px; font-weight: 600;
+    }
+    #panel .row { margin-bottom: 11px; }
+    #panel label {
+      display: flex; justify-content: space-between; font-size: 11px;
+      color: rgba(255, 255, 255, 0.72); margin-bottom: 5px; letter-spacing: 0.02em;
+    }
+    #panel label output { color: #fff; font-variant-numeric: tabular-nums; }
+    #panel input[type=range] {
+      -webkit-appearance: none; appearance: none; width: 100%; height: 2px;
+      background: rgba(255, 255, 255, 0.25); border-radius: 2px; cursor: pointer; accent-color: #fff;
+    }
+    #panel input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 11px; height: 11px; border-radius: 50%; background: #fff; cursor: pointer;
+    }
+    #panel input[type=range]::-moz-range-thumb { width: 11px; height: 11px; border-radius: 50%; background: #fff; border: 0; cursor: pointer; }
+    #panel .thumbs { display: flex; gap: 6px; margin-top: 3px; }
+    #panel .thumbs img {
+      width: 38px; height: 38px; border-radius: 6px; object-fit: cover; cursor: pointer;
+      opacity: 0.5; border: 1.5px solid transparent; transition: opacity 0.15s, border-color 0.15s;
+    }
+    #panel .thumbs img.active, #panel .thumbs img:hover { opacity: 1; border-color: rgba(255, 255, 255, 0.6); }
+    @media (max-width: 640px) { #panel { display: none; } }
   </style>
 </head>
 <body>
@@ -196,6 +230,25 @@
     </div>
   </div>
 
+  <!-- Control panel -->
+  <div id="panel">
+    <h2>Controls</h2>
+    <div class="row"><label>Saturate <output id="o-sat">2.75</output></label><input id="i-sat" type="range" min="0" max="4" step="0.05" value="2.75" /></div>
+    <div class="row"><label>Brightness <output id="o-bri">0.70</output></label><input id="i-bri" type="range" min="0.2" max="1.5" step="0.05" value="0.7" /></div>
+    <div class="row"><label>Contrast <output id="o-con">1.90</output></label><input id="i-con" type="range" min="0.5" max="3" step="0.05" value="1.9" /></div>
+    <div class="row"><label>Blur <output id="o-blur">60</output></label><input id="i-blur" type="range" min="0" max="120" step="1" value="60" /></div>
+    <div class="row"><label>Scrim <output id="o-scrim">0.38</output></label><input id="i-scrim" type="range" min="0" max="0.8" step="0.01" value="0.38" /></div>
+    <div class="row"><label>Rotation <output id="o-rot">1.0</output></label><input id="i-rot" type="range" min="0" max="3" step="0.1" value="1" /></div>
+    <div class="row"><label>Artwork</label>
+      <div class="thumbs" id="thumbs">
+        <img src="sample.jpg"  data-src="sample.jpg"  class="active" alt="Artwork 1" />
+        <img src="sample2.jpg" data-src="sample2.jpg" alt="Artwork 2" />
+        <img src="sample3.jpg" data-src="sample3.jpg" alt="Artwork 3" />
+        <img src="sample4.jpg" data-src="sample4.jpg" alt="Artwork 4" />
+      </div>
+    </div>
+  </div>
+
   <!-- Image URL loader -->
   <div class="loader">
     <input id="urlInput" type="text" placeholder="Paste image URL…" />
@@ -222,6 +275,34 @@
     btn.addEventListener('click', () => applyImage(input.value.trim()));
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') applyImage(input.value.trim());
+    });
+
+    // ── Control panel ──────────────────────────────────────────
+    const scrim = document.querySelector('.scrim');
+    const filt = { sat: 2.75, bri: 0.7, con: 1.9, blur: 60 };
+    const applyFilter = () =>
+      (canvas.style.filter = `blur(${filt.blur}px) saturate(${filt.sat}) brightness(${filt.bri}) contrast(${filt.con})`);
+
+    const slider = (id, fmt, onInput) => {
+      const inp = document.getElementById('i-' + id);
+      const out = document.getElementById('o-' + id);
+      const upd = () => { const v = parseFloat(inp.value); out.textContent = fmt(v); onInput(v); };
+      inp.addEventListener('input', upd);
+      upd();
+    };
+    slider('sat',   (v) => v.toFixed(2),       (v) => { filt.sat = v;  applyFilter(); });
+    slider('bri',   (v) => v.toFixed(2),       (v) => { filt.bri = v;  applyFilter(); });
+    slider('con',   (v) => v.toFixed(2),       (v) => { filt.con = v;  applyFilter(); });
+    slider('blur',  (v) => String(Math.round(v)), (v) => { filt.blur = v; applyFilter(); });
+    slider('scrim', (v) => v.toFixed(2),       (v) => { scrim.style.background = `rgba(0,0,0,${v})`; });
+    slider('rot',   (v) => v.toFixed(1),       (v) => { ac.speedScale = v; });
+
+    const thumbs = document.getElementById('thumbs');
+    thumbs.addEventListener('click', (e) => {
+      const t = e.target.closest('img');
+      if (!t) return;
+      thumbs.querySelectorAll('img').forEach((i) => i.classList.toggle('active', i === t));
+      applyImage(t.dataset.src);
     });
   </script>
 
